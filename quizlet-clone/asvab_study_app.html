@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASVAB Study App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 18px;
+            background: none;
+            border: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #667eea;
+            background: white;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .content {
+            padding: 40px 30px;
+            min-height: 500px;
+        }
+
+        .mode {
+            display: none;
+        }
+
+        .mode.active {
+            display: block;
+        }
+
+        /* Flashcard Styles */
+        .flashcard-container {
+            perspective: 1000px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .card-back {
+            background: white;
+            border: 2px solid #667eea;
+            transform: rotateY(180deg);
+        }
+
+        .card-face h3 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .card-face .question {
+            font-size: 1.5em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-back .answer {
+            font-size: 1.8em;
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .card-back .explanation {
+            font-size: 1.1em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .flashcard-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #667eea;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+        }
+
+        .progress {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        /* Practice Test Styles */
+        .question-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            padding: 18px 24px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1em;
+            text-align: left;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #e7e9fc;
+        }
+
+        .option.correct {
+            border-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .option.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .test-nav {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .results {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .results h2 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .results .score {
+            font-size: 4em;
+            font-weight: 700;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .results p {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .flashcard {
+                height: 350px;
+            }
+
+            .card-face .question {
+                font-size: 1.2em;
+            }
+
+            .card-back .answer {
+                font-size: 1.4em;
+            }
+
+            .question-text {
+                font-size: 1.2em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            select {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 ASVAB Study App</h1>
+            <p>Master the Armed Services Vocational Aptitude Battery</p>
+        </header>
+
+        <div class="controls">
+            <label for="deckSelect">Subject Area:</label>
+            <select id="deckSelect">
+                <option value="english">English / Word Knowledge</option>
+                <option value="math">Mathematics (AR & MK)</option>
+                <option value="science">Science</option>
+                <option value="mechanical">Mechanical Comprehension</option>
+            </select>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-mode="flashcards">Flashcards</button>
+            <button class="tab" data-mode="practice">Practice Test</button>
+        </div>
+
+        <div class="content">
+            <!-- Flashcards Mode -->
+            <div id="flashcards" class="mode active">
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="card-face card-front">
+                            <h3>Question</h3>
+                            <div class="question" id="cardQuestion"></div>
+                            <p style="opacity: 0.7; margin-top: 20px;">Click to flip</p>
+                        </div>
+                        <div class="card-face card-back">
+                            <h3>Answer</h3>
+                            <div class="answer" id="cardAnswer"></div>
+                            <div class="explanation" id="cardExplanation"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flashcard-nav">
+                    <button class="btn btn-secondary" id="prevCard">← Previous</button>
+                    <button class="btn" id="shuffleCards">🔀 Shuffle</button>
+                    <button class="btn btn-secondary" id="nextCard">Next →</button>
+                </div>
+                <div class="progress" id="flashcardProgress"></div>
+            </div>
+
+            <!-- Practice Test Mode -->
+            <div id="practice" class="mode">
+                <div class="question-container" id="testContainer">
+                    <div class="question-text" id="testQuestion"></div>
+                    <div class="options" id="testOptions"></div>
+                    <div class="progress" id="testProgress"></div>
+                </div>
+                <div id="resultsContainer" class="results" style="display: none;">
+                    <h2>Test Complete!</h2>
+                    <div class="score" id="finalScore"></div>
+                    <p id="scoreMessage"></p>
+                    <button class="btn" id="retakeTest">Retake Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Question Database
+        const questionBank = {
+            english: [
+                {
+                    question: "Verbose most nearly means:",
+                    answer: "Wordy",
+                    incorrect: ["Brief", "Silent", "Clear"],
+                    explanation: "Verbose means using more words than needed; wordy or long-winded."
+                },
+                {
+                    question: "Candid most nearly means:",
+                    answer: "Honest",
+                    incorrect: ["Secretive", "Clever", "Careful"],
+                    explanation: "Candid means truthful and straightforward; frank or honest."
+                },
+                {
+                    question: "Meticulous most nearly means:",
+                    answer: "Careful",
+                    incorrect: ["Careless", "Quick", "Messy"],
+                    explanation: "Meticulous means showing great attention to detail; very careful and precise."
+                },
+                {
+                    question: "Obsolete most nearly means:",
+                    answer: "Outdated",
+                    incorrect: ["Modern", "Useful", "New"],
+                    explanation: "Obsolete means no longer in use; outdated or antiquated."
+                },
+                {
+                    question: "Adversary most nearly means:",
+                    answer: "Opponent",
+                    incorrect: ["Friend", "Partner", "Helper"],
+                    explanation: "An adversary is someone who opposes or fights against you; an enemy or opponent."
+                },
+                {
+                    question: "Augment most nearly means:",
+                    answer: "Increase",
+                    incorrect: ["Decrease", "Maintain", "Destroy"],
+                    explanation: "Augment means to make something greater by adding to it; to increase or enlarge."
+                },
+                {
+                    question: "Benevolent most nearly means:",
+                    answer: "Kind",
+                    incorrect: ["Cruel", "Neutral", "Angry"],
+                    explanation: "Benevolent means well-meaning and kindly; charitable and generous."
+                },
+                {
+                    question: "Concur most nearly means:",
+                    answer: "Agree",
+                    incorrect: ["Disagree", "Question", "Ignore"],
+                    explanation: "Concur means to agree or be of the same opinion."
+                },
+                {
+                    question: "Doctrine most nearly means:",
+                    answer: "Principle",
+                    incorrect: ["Practice", "Question", "Doubt"],
+                    explanation: "A doctrine is a belief or set of beliefs held and taught; a principle or policy."
+                },
+                {
+                    question: "Eloquent most nearly means:",
+                    answer: "Articulate",
+                    incorrect: ["Inarticulate", "Quiet", "Confused"],
+                    explanation: "Eloquent means fluent or persuasive in speaking or writing; articulate and expressive."
+                },
+                {
+                    question: "Feasible most nearly means:",
+                    answer: "Possible",
+                    incorrect: ["Impossible", "Difficult", "Unlikely"],
+                    explanation: "Feasible means capable of being done; possible or practical."
+                },
+                {
+                    question: "Frugal most nearly means:",
+                    answer: "Economical",
+                    incorrect: ["Wasteful", "Generous", "Extravagant"],
+                    explanation: "Frugal means sparing or economical with money or food; thrifty."
+                },
+                {
+                    question: "Hindrance most nearly means:",
+                    answer: "Obstacle",
+                    incorrect: ["Help", "Advantage", "Benefit"],
+                    explanation: "A hindrance is something that provides resistance or delay; an obstacle or impediment."
+                },
+                {
+                    question: "Impartial most nearly means:",
+                    answer: "Unbiased",
+                    incorrect: ["Biased", "Partial", "Prejudiced"],
+                    explanation: "Impartial means treating all rivals or disputants equally; fair and unbiased."
+                },
+                {
+                    question: "Incentive most nearly means:",
+                    answer: "Motivation",
+                    incorrect: ["Discouragement", "Penalty", "Punishment"],
+                    explanation: "An incentive is something that motivates or encourages one to do something; a motivation."
+                },
+                {
+                    question: "Jovial most nearly means:",
+                    answer: "Cheerful",
+                    incorrect: ["Sad", "Angry", "Serious"],
+                    explanation: "Jovial means cheerful and friendly; jolly and good-humored."
+                },
+                {
+                    question: "Lenient most nearly means:",
+                    answer: "Permissive",
+                    incorrect: ["Strict", "Harsh", "Severe"],
+                    explanation: "Lenient means more merciful or tolerant than expected; permissive and forgiving."
+                },
+                {
+                    question: "Negligent most nearly means:",
+                    answer: "Careless",
+                    incorrect: ["Careful", "Attentive", "Diligent"],
+                    explanation: "Negligent means failing to take proper care; careless or neglectful."
+                },
+                {
+                    question: "Opaque most nearly means:",
+                    answer: "Unclear",
+                    incorrect: ["Clear", "Transparent", "Obvious"],
+                    explanation: "Opaque means not able to be seen through; not transparent or not clearly expressed."
+                },
+                {
+                    question: "Pragmatic most nearly means:",
+                    answer: "Practical",
+                    incorrect: ["Theoretical", "Idealistic", "Impractical"],
+                    explanation: "Pragmatic means dealing with things sensibly and realistically; practical."
+                },
+                {
+                    question: "Resilient most nearly means:",
+                    answer: "Adaptable",
+                    incorrect: ["Rigid", "Brittle", "Weak"],
+                    explanation: "Resilient means able to withstand or recover quickly from difficult conditions; adaptable."
+                },
+                {
+                    question: "Somber most nearly means:",
+                    answer: "Gloomy",
+                    incorrect: ["Cheerful", "Bright", "Happy"],
+                    explanation: "Somber means dark or dull in color or tone; gloomy or serious."
+                },
+                {
+                    question: "Tenacious most nearly means:",
+                    answer: "Persistent",
+                    incorrect: ["Yielding", "Weak", "Flexible"],
+                    explanation: "Tenacious means tending to keep a firm hold of something; persistent and determined."
+                },
+                {
+                    question: "Tranquil most nearly means:",
+                    answer: "Peaceful",
+                    incorrect: ["Chaotic", "Noisy", "Disturbed"],
+                    explanation: "Tranquil means free from disturbance; calm and peaceful."
+                },
+                {
+                    question: "Valid most nearly means:",
+                    answer: "Sound",
+                    incorrect: ["Invalid", "Weak", "False"],
+                    explanation: "Valid means having a sound basis in logic or fact; reasonable or sound."
+                },
+                {
+                    question: "Wary most nearly means:",
+                    answer: "Cautious",
+                    incorrect: ["Careless", "Trusting", "Reckless"],
+                    explanation: "Wary means feeling or showing caution; cautious and vigilant."
+                },
+                {
+                    question: "Zeal most nearly means:",
+                    answer: "Enthusiasm",
+                    incorrect: ["Apathy", "Indifference", "Laziness"],
+                    explanation: "Zeal means great energy or enthusiasm in pursuit of a cause or objective."
+                },
+                {
+                    question: "Ambiguous most nearly means:",
+                    answer: "Unclear",
+                    incorrect: ["Clear", "Specific", "Definite"],
+                    explanation: "Ambiguous means open to more than one interpretation; unclear or vague."
+                },
+                {
+                    question: "Abundant most nearly means:",
+                    answer: "Plentiful",
+                    incorrect: ["Scarce", "Limited", "Rare"],
+                    explanation: "Abundant means existing or available in large quantities; plentiful."
+                },
+                {
+                    question: "Reluctant most nearly means:",
+                    answer: "Unwilling",
+                    incorrect: ["Eager", "Willing", "Enthusiastic"],
+                    explanation: "Reluctant means unwilling and hesitant; disinclined."
+                },
+                {
+                    question: "Trivial most nearly means:",
+                    answer: "Unimportant",
+                    incorrect: ["Important", "Significant", "Major"],
+                    explanation: "Trivial means of little value or importance; unimportant."
+                },
+                {
+                    question: "Vigilant most nearly means:",
+                    answer: "Watchful",
+                    incorrect: ["Careless", "Inattentive", "Negligent"],
+                    explanation: "Vigilant means keeping careful watch for possible danger; watchful and alert."
+                },
+                {
+                    question: "Cordial most nearly means:",
+                    answer: "Friendly",
+                    incorrect: ["Hostile", "Cold", "Unfriendly"],
+                    explanation: "Cordial means warm and friendly; sincere and affectionate."
+                },
+                {
+                    question: "Desolate most nearly means:",
+                    answer: "Barren",
+                    incorrect: ["Populated", "Fertile", "Lush"],
+                    explanation: "Desolate means deserted and empty; barren and lifeless."
+                },
+                {
+                    question: "Erratic most nearly means:",
+                    answer: "Unpredictable",
+                    incorrect: ["Consistent", "Reliable", "Steady"],
+                    explanation: "Erratic means not even or regular in pattern; unpredictable and inconsistent."
+                },
+                {
+                    question: "Fortify most nearly means:",
+                    answer: "Strengthen",
+                    incorrect: ["Weaken", "Damage", "Destroy"],
+                    explanation: "Fortify means to strengthen or secure; to make strong or stronger."
+                },
+                {
+                    question: "Grave most nearly means:",
+                    answer: "Serious",
+                    incorrect: ["Trivial", "Minor", "Light"],
+                    explanation: "Grave means giving cause for alarm; serious or solemn."
+                },
+                {
+                    question: "Harmonious most nearly means:",
+                    answer: "Compatible",
+                    incorrect: ["Discordant", "Conflicting", "Contradictory"],
+                    explanation: "Harmonious means forming a pleasing or consistent whole; compatible and agreeable."
+                },
+                {
+                    question: "Imminent most nearly means:",
+                    answer: "Impending",
+                    incorrect: ["Distant", "Unlikely", "Past"],
+                    explanation: "Imminent means about to happen; impending or approaching."
+                },
+                {
+                    question: "Lucid most nearly means:",
+                    answer: "Clear",
+                    incorrect: ["Confused", "Unclear", "Vague"],
+                    explanation: "Lucid means expressed clearly; easy to understand or clear."
+                },
+                {
+                    question: "Novice most nearly means:",
+                    answer: "Beginner",
+                    incorrect: ["Expert", "Professional", "Veteran"],
+                    explanation: "A novice is a person new to or inexperienced in a field; a beginner."
+                },
+                {
+                    question: "Obscure most nearly means:",
+                    answer: "Unclear",
+                    incorrect: ["Obvious", "Clear", "Apparent"],
+                    explanation: "Obscure means not discovered or known about; unclear or not well-known."
+                },
+                {
+                    question: "Perpetual most nearly means:",
+                    answer: "Continuous",
+                    incorrect: ["Temporary", "Brief", "Intermittent"],
+                    explanation: "Perpetual means never ending or changing; continuous and constant."
+                },
+                {
+                    question: "Proficient most nearly means:",
+                    answer: "Skilled",
+                    incorrect: ["Incompetent", "Unskilled", "Amateur"],
+                    explanation: "Proficient means competent or skilled in doing something; expert."
+                },
+                {
+                    question: "Reluctance most nearly means:",
+                    answer: "Hesitation",
+                    incorrect: ["Eagerness", "Willingness", "Enthusiasm"],
+                    explanation: "Reluctance is unwillingness or disinclination to do something; hesitation."
+                },
+                {
+                    question: "Solitary most nearly means:",
+                    answer: "Alone",
+                    incorrect: ["Together", "Accompanied", "Crowded"],
+                    explanation: "Solitary means done or existing alone; single or isolated."
+                },
+                {
+                    question: "Superficial most nearly means:",
+                    answer: "Shallow",
+                    incorrect: ["Deep", "Thorough", "Profound"],
+                    explanation: "Superficial means existing or occurring at or on the surface; shallow."
+                },
+                {
+                    question: "Timid most nearly means:",
+                    answer: "Shy",
+                    incorrect: ["Bold", "Confident", "Brave"],
+                    explanation: "Timid means showing a lack of courage or confidence; shy or fearful."
+                },
+                {
+                    question: "Uniformity most nearly means:",
+                    answer: "Consistency",
+                    incorrect: ["Variety", "Diversity", "Difference"],
+                    explanation: "Uniformity is the quality or state of being uniform; consistency and sameness."
+                },
+                {
+                    question: "Versatile most nearly means:",
+                    answer: "Adaptable",
+                    incorrect: ["Limited", "Specialized", "Rigid"],
+                    explanation: "Versatile means able to adapt to many different functions; adaptable and flexible."
+                }
+            ],
+            math: [
+                {
+                    question: "If a car travels 240 miles in 4 hours, what is its average speed?",
+                    answer: "60 mph",
+                    incorrect: ["50 mph", "70 mph", "80 mph"],
+                    explanation: "Speed = Distance ÷ Time. 240 miles ÷ 4 hours = 60 mph."
+                },
+                {
+                    question: "What is 15% of 200?",
+                    answer: "30",
+                    incorrect: ["20", "25", "35"],
+                    explanation: "15% of 200 = 0.15 × 200 = 30."
+                },
+                {
+                    question: "If a rectangle has a length of 8 feet and width of 5 feet, what is its area?",
+                    answer: "40 square feet",
+                    incorrect: ["26 square feet", "13 square feet", "45 square feet"],
+                    explanation: "Area = Length × Width. 8 × 5 = 40 square feet."
+                },
+                {
+                    question: "Solve for x: 3x + 7 = 22",
+                    answer: "x = 5",
+                    incorrect: ["x = 3", "x = 7", "x = 6"],
+                    explanation: "3x + 7 = 22. Subtract 7: 3x = 15. Divide by 3: x = 5."
+                },
+                {
+                    question: "What is the perimeter of a square with sides of 6 inches?",
+                    answer: "24 inches",
+                    incorrect: ["12 inches", "36 inches", "18 inches"],
+                    explanation: "Perimeter = 4 × side. 4 × 6 = 24 inches."
+                },
+                {
+                    question: "If you buy 3 items at $2.50 each, how much do you spend?",
+                    answer: "$7.50",
+                    incorrect: ["$5.00", "$6.50", "$8.00"],
+                    explanation: "3 × $2.50 = $7.50."
+                },
+                {
+                    question: "What is the square root of 144?",
+                    answer: "12",
+                    incorrect: ["10", "14", "16"],
+                    explanation: "√144 = 12 because 12 × 12 = 144."
+                },
+                {
+                    question: "If a triangle has angles of 90° and 45°, what is the third angle?",
+                    answer: "45°",
+                    incorrect: ["60°", "30°", "50°"],
+                    explanation: "Angles in a triangle sum to 180°. 180° - 90° - 45° = 45°."
+                },
+                {
+                    question: "What is 2/5 expressed as a decimal?",
+                    answer: "0.4",
+                    incorrect: ["0.5", "0.25", "0.3"],
+                    explanation: "2 ÷ 5 = 0.4"
+                },
+                {
+                    question: "If a circle has a radius of 7 cm, what is its diameter?",
+                    answer: "14 cm",
+                    incorrect: ["7 cm", "21 cm", "10 cm"],
+                    explanation: "Diameter = 2 × radius. 2 × 7 = 14 cm."
+                },
+                {
+                    question: "What is 8² (8 squared)?",
+                    answer: "64",
+                    incorrect: ["56", "72", "16"],
+                    explanation: "8² = 8 × 8 = 64."
+                },
+                {
+                    question: "If you earn $12 per hour and work 6 hours, how much do you earn?",
+                    answer: "$72",
+                    incorrect: ["$60", "$68", "$78"],
+                    explanation: "$12 × 6 hours = $72."
+                },
+                {
+                    question: "What is 3/4 + 1/4?",
+                    answer: "1",
+                    incorrect: ["1/2", "2", "3/8"],
+                    explanation: "3/4 + 1/4 = 4/4 = 1."
+                },
+                {
+                    question: "If a book costs $15 and is on sale for 20% off, what is the sale price?",
+                    answer: "$12",
+                    incorrect: ["$10", "$13", "$14"],
+                    explanation: "20% of $15 = $3. $15 - $3 = $12."
+                },
+                {
+                    question: "What is the area of a circle with radius 3? (Use π ≈ 3.14)",
+                    answer: "28.26 square units",
+                    incorrect: ["18.84 square units", "9.42 square units", "37.68 square units"],
+                    explanation: "Area = πr². A = 3.14 × 3² = 3.14 × 9 = 28.26 square units."
+                },
+                {
+                    question: "Solve: 48 ÷ 6 + 2 × 3",
+                    answer: "14",
+                    incorrect: ["30", "18", "12"],
+                    explanation: "Follow order of operations: 48 ÷ 6 = 8, then 2 × 3 = 6, then 8 + 6 = 14."
+                },
+                {
+                    question: "What is 25% of 80?",
+                    answer: "20",
+                    incorrect: ["15", "25", "30"],
+                    explanation: "25% of 80 = 0.25 × 80 = 20."
+                },
+                {
+                    question: "If a worker makes $15/hour and works 40 hours with time-and-a-half for overtime (5 hours), what is the total pay?",
+                    answer: "$712.50",
+                    incorrect: ["$675", "$600", "$750"],
+                    explanation: "Regular: 40 × $15 = $600. Overtime: 5 × $22.50 = $112.50. Total: $712.50."
+                },
+                {
+                    question: "What is the volume of a cube with sides of 4 inches?",
+                    answer: "64 cubic inches",
+                    incorrect: ["16 cubic inches", "48 cubic inches", "24 cubic inches"],
+                    explanation: "Volume = side³. 4³ = 4 × 4 × 4 = 64 cubic inches."
+                },
+                {
+                    question: "If 5x - 3 = 17, what is x?",
+                    answer: "4",
+                    incorrect: ["3", "5", "6"],
+                    explanation: "5x - 3 = 17. Add 3: 5x = 20. Divide by 5: x = 4."
+                },
+                {
+                    question: "What is 0.75 expressed as a fraction?",
+                    answer: "3/4",
+                    incorrect: ["2/3", "1/2", "4/5"],
+                    explanation: "0.75 = 75/100 = 3/4 (simplified)."
+                },
+                {
+                    question: "If a recipe calls for 2 cups of flour and you want to make half the recipe, how much flour do you need?",
+                    answer: "1 cup",
+                    incorrect: ["1.5 cups", "0.5 cups", "2 cups"],
+                    explanation: "Half of 2 cups = 2 ÷ 2 = 1 cup."
+                },
+                {
+                    question: "What is the least common multiple (LCM) of 4 and 6?",
+                    answer: "12",
+                    incorrect: ["24", "8", "6"],
+                    explanation: "Multiples of 4: 4, 8, 12... Multiples of 6: 6, 12... LCM is 12."
+                },
+                {
+                    question: "If a train travels 150 miles in 2.5 hours, what is its average speed?",
+                    answer: "60 mph",
+                    incorrect: ["55 mph", "65 mph", "50 mph"],
+                    explanation: "Speed = Distance ÷ Time. 150 ÷ 2.5 = 60 mph."
+                },
+                {
+                    question: "What is 7 × 8 - 6 × 5?",
+                    answer: "26",
+                    incorrect: ["86", "20", "32"],
+                    explanation: "7 × 8 = 56, 6 × 5 = 30, then 56 - 30 = 26."
+                },
+                {
+                    question: "If a box measures 10 in × 5 in × 3 in, what is its volume?",
+                    answer: "150 cubic inches",
+                    incorrect: ["50 cubic inches", "18 cubic inches", "180 cubic inches"],
+                    explanation: "Volume = length × width × height. 10 × 5 × 3 = 150 cubic inches."
+                },
+                {
+                    question: "What is 2³ × 3²?",
+                    answer: "72",
+                    incorrect: ["48", "54", "64"],
+                    explanation: "2³ = 8, 3² = 9, then 8 × 9 = 72."
+                },
+                {
+                    question: "If you invest $500 at 5% simple interest for 2 years, how much interest do you earn?",
+                    answer: "$50",
+                    incorrect: ["$25", "$100", "$75"],
+                    explanation: "Interest = Principal × Rate × Time. $500 × 0.05 × 2 = $50."
+                },
+                {
+                    question: "What is the greatest common factor (GCF) of 18 and 24?",
+                    answer: "6",
+                    incorrect: ["12", "3", "9"],
+                    explanation: "Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. GCF is 6."
+                },
+                {
+                    question: "If a rectangle has a perimeter of 30 feet and a width of 5 feet, what is its length?",
+                    answer: "10 feet",
+                    incorrect: ["15 feet", "12 feet", "8 feet"],
+                    explanation: "Perimeter = 2(L + W). 30 = 2(L + 5). 15 = L + 5. L = 10 feet."
+                },
+                {
+                    question: "What is 5/8 - 1/4?",
+                    answer: "3/8",
+                    incorrect: ["1/2", "1/4", "2/8"],
+                    explanation: "Convert 1/4 to 2/8. Then 5/8 - 2/8 = 3/8."
+                },
+                {
+                    question: "If a die is rolled, what is the probability of rolling a 4?",
+                    answer: "1/6",
+                    incorrect: ["1/4", "1/3", "1/2"],
+                    explanation: "There is 1 favorable outcome (rolling a 4) out of 6 possible outcomes. P = 1/6."
+                },
+                {
+                    question: "What is 12% of 150?",
+                    answer: "18",
+                    incorrect: ["15", "20", "22"],
+                    explanation: "12% of 150 = 0.12 × 150 = 18."
+                },
+                {
+                    question: "If you buy 4 notebooks at $3.25 each, how much change do you get from $20?",
+                    answer: "$7.00",
+                    incorrect: ["$6.00", "$8.00", "$7.50"],
+                    explanation: "4 × $3.25 = $13.00. $20 - $13 = $7.00."
+                },
+                {
+                    question: "What is the median of: 3, 7, 5, 9, 11?",
+                    answer: "7",
+                    incorrect: ["5", "9", "6"],
+                    explanation: "Arrange in order: 3, 5, 7, 9, 11. The middle value (median) is 7."
+                },
+                {
+                    question: "Solve: 2(x + 3) = 14",
+                    answer: "x = 4",
+                    incorrect: ["x = 5", "x = 7", "x = 3"],
+                    explanation: "2(x + 3) = 14. Divide by 2: x + 3 = 7. Subtract 3: x = 4."
+                },
+                {
+                    question: "If an item costs $80 after a 20% discount, what was the original price?",
+                    answer: "$100",
+                    incorrect: ["$96", "$90", "$105"],
+                    explanation: "If 20% off, then $80 = 80% of original. Original = $80 ÷ 0.8 = $100."
+                },
+                {
+                    question: "What is the mode of: 2, 4, 4, 6, 8, 4, 10?",
+                    answer: "4",
+                    incorrect: ["6", "2", "8"],
+                    explanation: "The mode is the most frequently occurring number. 4 appears three times."
+                },
+                {
+                    question: "What is 3/5 × 2/3?",
+                    answer: "2/5",
+                    incorrect: ["1/2", "6/15", "5/8"],
+                    explanation: "Multiply numerators and denominators: (3 × 2)/(5 × 3) = 6/15 = 2/5."
+                },
+                {
+                    question: "If a team wins 15 games and loses 10 games, what is their winning percentage?",
+                    answer: "60%",
+                    incorrect: ["50%", "70%", "65%"],
+                    explanation: "15 wins out of 25 total games. 15/25 = 0.6 = 60%."
+                },
+                {
+                    question: "What is the sum of the interior angles of a pentagon?",
+                    answer: "540°",
+                    incorrect: ["360°", "450°", "720°"],
+                    explanation: "Formula: (n-2) × 180°. For pentagon (5 sides): (5-2) × 180° = 540°."
+                },
+                {
+                    question: "If you drive 45 miles in 45 minutes, what is your average speed in mph?",
+                    answer: "60 mph",
+                    incorrect: ["45 mph", "50 mph", "55 mph"],
+                    explanation: "45 minutes = 0.75 hours. Speed = 45 miles ÷ 0.75 hours = 60 mph."
+                },
+                {
+                    question: "What is 10! ÷ 8!? (factorial)",
+                    answer: "90",
+                    incorrect: ["80", "72", "100"],
+                    explanation: "10!/8! = (10 × 9 × 8!)/(8!) = 10 × 9 = 90."
+                },
+                {
+                    question: "If a number is increased by 50% and then decreased by 50%, what is the net change?",
+                    answer: "25% decrease",
+                    incorrect: ["No change", "25% increase", "50% decrease"],
+                    explanation: "Start with 100. Increase 50%: 150. Decrease 50% of 150: 75. Net: 25% decrease."
+                },
+                {
+                    question: "What is the value of x if 2x/3 = 10?",
+                    answer: "15",
+                    incorrect: ["20", "12", "18"],
+                    explanation: "2x/3 = 10. Multiply by 3: 2x = 30. Divide by 2: x = 15."
+                },
+                {
+                    question: "If a cone has a radius of 4 cm and height of 9 cm, what is its volume? (V = 1/3πr²h, π ≈ 3.14)",
+                    answer: "150.72 cubic cm",
+                    incorrect: ["113.04 cubic cm", "200.96 cubic cm", "125.6 cubic cm"],
+                    explanation: "V = 1/3 × 3.14 × 4² × 9 = 1/3 × 3.14 × 16 × 9 = 150.72 cubic cm."
+                }
+            ],
+            science: [
+                {
+                    question: "What is the process by which plants make their own food?",
+                    answer: "Photosynthesis",
+                    incorrect: ["Respiration", "Digestion", "Fermentation"],
+                    explanation: "Photosynthesis is the process plants use to convert light energy, CO2, and water into glucose and oxygen."
+                },
+                {
+                    question: "What is the smallest unit of life?",
+                    answer: "Cell",
+                    incorrect: ["Atom", "Molecule", "Organ"],
+                    explanation: "The cell is the basic structural and functional unit of all living organisms."
+                },
+                {
+                    question: "What type of bond involves the sharing of electrons?",
+                    answer: "Covalent bond",
+                    incorrect: ["Ionic bond", "Hydrogen bond", "Metallic bond"],
+                    explanation: "Covalent bonds form when atoms share electrons to achieve stable electron configurations."
+                },
+                {
+                    question: "What is the powerhouse of the cell?",
+                    answer: "Mitochondria",
+                    incorrect: ["Nucleus", "Ribosome", "Chloroplast"],
+                    explanation: "Mitochondria produce ATP through cellular respiration, providing energy for the cell."
+                },
+                {
+                    question: "What is the pH of a neutral solution?",
+                    answer: "7",
+                    incorrect: ["0", "14", "10"],
+                    explanation: "The pH scale ranges from 0-14, with 7 being neutral (pure water)."
+                },
+                {
+                    question: "What gas do plants absorb from the atmosphere?",
+                    answer: "Carbon dioxide",
+                    incorrect: ["Oxygen", "Nitrogen", "Hydrogen"],
+                    explanation: "Plants absorb CO2 from the atmosphere and use it in photosynthesis."
+                },
+                {
+                    question: "What is the force that opposes motion between surfaces?",
+                    answer: "Friction",
+                    incorrect: ["Gravity", "Magnetism", "Inertia"],
+                    explanation: "Friction is the resistance force that opposes motion when surfaces slide against each other."
+                },
+                {
+                    question: "What is the chemical symbol for gold?",
+                    answer: "Au",
+                    incorrect: ["Ag", "Go", "Gd"],
+                    explanation: "Au comes from the Latin word 'aurum' meaning gold."
+                },
+                {
+                    question: "What organ in the human body filters blood?",
+                    answer: "Kidneys",
+                    incorrect: ["Liver", "Heart", "Lungs"],
+                    explanation: "The kidneys filter waste and excess water from blood to produce urine."
+                },
+                {
+                    question: "What is the speed of light in a vacuum?",
+                    answer: "300,000 km/s",
+                    incorrect: ["150,000 km/s", "500,000 km/s", "200,000 km/s"],
+                    explanation: "Light travels at approximately 300,000 kilometers per second (or 186,000 miles/second) in a vacuum."
+                },
+                {
+                    question: "What is the term for a substance that speeds up a chemical reaction without being consumed?",
+                    answer: "Catalyst",
+                    incorrect: ["Reactant", "Product", "Inhibitor"],
+                    explanation: "A catalyst increases the rate of a chemical reaction without being permanently changed."
+                },
+                {
+                    question: "What are the three states of matter?",
+                    answer: "Solid, liquid, gas",
+                    incorrect: ["Hot, cold, warm", "Hard, soft, medium", "Heavy, light, medium"],
+                    explanation: "Matter exists in three primary states: solid (fixed shape), liquid (fixed volume), and gas (neither fixed)."
+                },
+                {
+                    question: "What is the center of an atom called?",
+                    answer: "Nucleus",
+                    incorrect: ["Electron cloud", "Proton", "Core"],
+                    explanation: "The nucleus is the central part of an atom containing protons and neutrons."
+                },
+                {
+                    question: "What type of energy is stored in food?",
+                    answer: "Chemical energy",
+                    incorrect: ["Kinetic energy", "Thermal energy", "Electrical energy"],
+                    explanation: "Chemical energy is stored in the bonds between atoms in molecules like carbohydrates and fats."
+                },
+                {
+                    question: "What is the process of water changing from liquid to gas?",
+                    answer: "Evaporation",
+                    incorrect: ["Condensation", "Precipitation", "Freezing"],
+                    explanation: "Evaporation is the phase change from liquid water to water vapor (gas)."
+                },
+                {
+                    question: "What is the largest organ in the human body?",
+                    answer: "Skin",
+                    incorrect: ["Liver", "Brain", "Heart"],
+                    explanation: "The skin is the largest organ, covering the entire external surface of the body."
+                },
+                {
+                    question: "What particles orbit the nucleus of an atom?",
+                    answer: "Electrons",
+                    incorrect: ["Protons", "Neutrons", "Photons"],
+                    explanation: "Electrons are negatively charged particles that orbit the nucleus in electron shells."
+                },
+                {
+                    question: "What is the process by which organisms produce offspring?",
+                    answer: "Reproduction",
+                    incorrect: ["Evolution", "Mutation", "Adaptation"],
+                    explanation: "Reproduction is the biological process by which new organisms are produced from parent organisms."
+                },
+                {
+                    question: "What is Newton's First Law of Motion?",
+                    answer: "An object at rest stays at rest; an object in motion stays in motion",
+                    incorrect: ["Force equals mass times acceleration", "Every action has an equal and opposite reaction", "Energy cannot be created or destroyed"],
+                    explanation: "Newton's First Law (Law of Inertia) states that objects maintain their state of motion unless acted upon by an external force."
+                },
+                {
+                    question: "What is the chemical formula for water?",
+                    answer: "H₂O",
+                    incorrect: ["CO₂", "O₂", "H₂"],
+                    explanation: "Water consists of two hydrogen atoms bonded to one oxygen atom."
+                },
+                {
+                    question: "What type of rock is formed from cooled magma?",
+                    answer: "Igneous",
+                    incorrect: ["Sedimentary", "Metamorphic", "Mineral"],
+                    explanation: "Igneous rocks form when molten magma or lava cools and solidifies."
+                },
+                {
+                    question: "What is the main gas in Earth's atmosphere?",
+                    answer: "Nitrogen",
+                    incorrect: ["Oxygen", "Carbon dioxide", "Argon"],
+                    explanation: "Nitrogen makes up about 78% of Earth's atmosphere, while oxygen is about 21%."
+                },
+                {
+                    question: "What is the name of the pigment that makes plants green?",
+                    answer: "Chlorophyll",
+                    incorrect: ["Carotene", "Melanin", "Hemoglobin"],
+                    explanation: "Chlorophyll is the green pigment in plants that absorbs light energy for photosynthesis."
+                },
+                {
+                    question: "What is the unit of electric current?",
+                    answer: "Ampere",
+                    incorrect: ["Volt", "Ohm", "Watt"],
+                    explanation: "The ampere (amp) is the SI unit for measuring electric current flow."
+                },
+                {
+                    question: "What organelle contains the cell's genetic material?",
+                    answer: "Nucleus",
+                    incorrect: ["Mitochondria", "Ribosome", "Golgi apparatus"],
+                    explanation: "The nucleus contains DNA, which carries genetic instructions for the cell."
+                },
+                {
+                    question: "What is the study of weather called?",
+                    answer: "Meteorology",
+                    incorrect: ["Climatology", "Geology", "Oceanography"],
+                    explanation: "Meteorology is the scientific study of the atmosphere and weather patterns."
+                },
+                {
+                    question: "What is the process of breaking down food in the body?",
+                    answer: "Digestion",
+                    incorrect: ["Respiration", "Circulation", "Excretion"],
+                    explanation: "Digestion is the breakdown of food into smaller molecules that can be absorbed by the body."
+                },
+                {
+                    question: "What is the charge of a proton?",
+                    answer: "Positive",
+                    incorrect: ["Negative", "Neutral", "Variable"],
+                    explanation: "Protons carry a positive electrical charge, while electrons are negative and neutrons are neutral."
+                },
+                {
+                    question: "What is the boiling point of water at sea level?",
+                    answer: "100°C (212°F)",
+                    incorrect: ["90°C (194°F)", "110°C (230°F)", "80°C (176°F)"],
+                    explanation: "Water boils at 100°C (212°F) at standard atmospheric pressure (sea level)."
+                },
+                {
+                    question: "What is the term for animals that eat only plants?",
+                    answer: "Herbivores",
+                    incorrect: ["Carnivores", "Omnivores", "Decomposers"],
+                    explanation: "Herbivores are animals that feed exclusively on plant material."
+                },
+                {
+                    question: "What is the law of conservation of energy?",
+                    answer: "Energy cannot be created or destroyed, only transformed",
+                    incorrect: ["Energy always decreases", "Energy always increases", "Energy disappears over time"],
+                    explanation: "The law states that energy can change forms but the total amount remains constant in a closed system."
+                },
+                {
+                    question: "What is the primary function of red blood cells?",
+                    answer: "Carry oxygen",
+                    incorrect: ["Fight infection", "Clot blood", "Digest food"],
+                    explanation: "Red blood cells contain hemoglobin, which binds to oxygen and transports it throughout the body."
+                },
+                {
+                    question: "What is the formula for calculating density?",
+                    answer: "Mass divided by volume",
+                    incorrect: ["Mass times volume", "Volume divided by mass", "Mass plus volume"],
+                    explanation: "Density = Mass/Volume. It measures how much matter is packed into a given space."
+                },
+                {
+                    question: "What type of wave is sound?",
+                    answer: "Longitudinal wave",
+                    incorrect: ["Transverse wave", "Electromagnetic wave", "Light wave"],
+                    explanation: "Sound waves are longitudinal waves where particles vibrate parallel to the direction of wave travel."
+                },
+                {
+                    question: "What is the chemical symbol for sodium?",
+                    answer: "Na",
+                    incorrect: ["So", "Sd", "S"],
+                    explanation: "Na comes from the Latin word 'natrium' for sodium."
+                },
+                {
+                    question: "What is the process by which water vapor becomes liquid?",
+                    answer: "Condensation",
+                    incorrect: ["Evaporation", "Sublimation", "Precipitation"],
+                    explanation: "Condensation occurs when water vapor cools and changes from gas to liquid (like dew forming)."
+                },
+                {
+                    question: "What is the basic unit of heredity?",
+                    answer: "Gene",
+                    incorrect: ["Chromosome", "DNA", "Cell"],
+                    explanation: "A gene is a segment of DNA that codes for a specific trait or protein."
+                },
+                {
+                    question: "What is the force that pulls objects toward Earth?",
+                    answer: "Gravity",
+                    incorrect: ["Magnetism", "Friction", "Tension"],
+                    explanation: "Gravity is the attractive force between masses; Earth's gravity pulls objects toward its center."
+                },
+                {
+                    question: "What are the building blocks of proteins?",
+                    answer: "Amino acids",
+                    incorrect: ["Nucleotides", "Fatty acids", "Glucose"],
+                    explanation: "Proteins are made up of chains of amino acids linked together by peptide bonds."
+                },
+                {
+                    question: "What is the measure of how much matter is in an object?",
+                    answer: "Mass",
+                    incorrect: ["Weight", "Volume", "Density"],
+                    explanation: "Mass is the amount of matter in an object and doesn't change with location, unlike weight."
+                },
+                {
+                    question: "What is the term for the bending of light as it passes through different materials?",
+                    answer: "Refraction",
+                    incorrect: ["Reflection", "Diffraction", "Absorption"],
+                    explanation: "Refraction is the change in direction of light when it passes from one medium to another."
+                },
+                {
+                    question: "What organ pumps blood through the circulatory system?",
+                    answer: "Heart",
+                    incorrect: ["Lungs", "Liver", "Brain"],
+                    explanation: "The heart is a muscular organ that pumps blood throughout the body via the circulatory system."
+                },
+                {
+                    question: "What is the atomic number of an element?",
+                    answer: "Number of protons",
+                    incorrect: ["Number of electrons", "Number of neutrons", "Total particles in nucleus"],
+                    explanation: "The atomic number is the number of protons in an atom's nucleus, which defines the element."
+                },
+                {
+                    question: "What is the study of life called?",
+                    answer: "Biology",
+                    incorrect: ["Chemistry", "Physics", "Geology"],
+                    explanation: "Biology is the scientific study of living organisms and their interactions with the environment."
+                },
+                {
+                    question: "What is the freezing point of water?",
+                    answer: "0°C (32°F)",
+                    incorrect: ["10°C (50°F)", "-10°C (14°F)", "5°C (41°F)"],
+                    explanation: "Water freezes at 0°C (32°F) at standard atmospheric pressure."
+                },
+                {
+                    question: "What is an organism that makes its own food called?",
+                    answer: "Autotroph (or producer)",
+                    incorrect: ["Heterotroph", "Consumer", "Decomposer"],
+                    explanation: "Autotrophs (like plants) produce their own food through photosynthesis or chemosynthesis."
+                },
+                {
+                    question: "What is the SI unit of force?",
+                    answer: "Newton",
+                    incorrect: ["Joule", "Watt", "Pascal"],
+                    explanation: "The newton (N) is the SI unit of force, defined as kg⋅m/s²."
+                },
+                {
+                    question: "What type of blood vessels carry blood away from the heart?",
+                    answer: "Arteries",
+                    incorrect: ["Veins", "Capillaries", "Lymph vessels"],
+                    explanation: "Arteries are thick-walled vessels that carry oxygenated blood away from the heart to body tissues."
+                },
+                {
+                    question: "What is the term for a change in an organism's DNA?",
+                    answer: "Mutation",
+                    incorrect: ["Evolution", "Adaptation", "Selection"],
+                    explanation: "A mutation is a permanent alteration in the DNA sequence of an organism's genome."
+                }
+            ],
+            mechanical: [
+                {
+                    question: "Which simple machine is a wheel with a grooved rim for a rope to run through?",
+                    answer: "Pulley",
+                    incorrect: ["Lever", "Wheel and axle", "Inclined plane"],
+                    explanation: "A pulley is a wheel with a groove around its edge for holding a rope or cable, used to lift loads."
+                },
+                {
+                    question: "What happens to the mechanical advantage when you increase the length of a lever's effort arm?",
+                    answer: "It increases",
+                    incorrect: ["It decreases", "It stays the same", "It becomes zero"],
+                    explanation: "Mechanical advantage = effort arm/load arm. Longer effort arm = greater mechanical advantage."
+                },
+                {
+                    question: "Which gear turns faster: a large gear or a small gear connected to it?",
+                    answer: "Small gear",
+                    incorrect: ["Large gear", "Both turn at same speed", "Neither turns"],
+                    explanation: "When gears mesh, the smaller gear must rotate more times to match the rotation of the larger gear."
+                },
+                {
+                    question: "What is the mechanical advantage of a ramp (inclined plane)?",
+                    answer: "Length of ramp divided by height",
+                    incorrect: ["Height divided by length", "Length times height", "Height minus length"],
+                    explanation: "MA of inclined plane = length/height. Longer, gentler ramps provide greater mechanical advantage."
+                },
+                {
+                    question: "In a first-class lever, where is the fulcrum located?",
+                    answer: "Between the effort and the load",
+                    incorrect: ["At the effort end", "At the load end", "Outside the lever"],
+                    explanation: "A first-class lever has the fulcrum between the effort and load (like a seesaw or crowbar)."
+                },
+                {
+                    question: "What tool combines a wheel and axle with an inclined plane?",
+                    answer: "Screw",
+                    incorrect: ["Pulley", "Wedge", "Lever"],
+                    explanation: "A screw is an inclined plane wrapped around a cylinder (wheel and axle)."
+                },
+                {
+                    question: "If gear A has 20 teeth and gear B has 40 teeth, what is the gear ratio?",
+                    answer: "1:2",
+                    incorrect: ["2:1", "1:1", "20:40"],
+                    explanation: "Gear ratio is determined by comparing the number of teeth. 20:40 simplifies to 1:2."
+                },
+                {
+                    question: "What happens to torque when you increase the distance from the pivot point?",
+                    answer: "It increases",
+                    incorrect: ["It decreases", "It stays the same", "It reverses"],
+                    explanation: "Torque = Force × Distance. Greater distance from pivot point increases torque."
+                },
+                {
+                    question: "Which simple machine is a rigid bar that pivots on a fulcrum?",
+                    answer: "Lever",
+                    incorrect: ["Wedge", "Screw", "Pulley"],
+                    explanation: "A lever is a rigid bar that rotates around a fixed point called a fulcrum."
+                },
+                {
+                    question: "What is the ideal mechanical advantage (IMA) if the effort distance is 6 meters and the load distance is 2 meters?",
+                    answer: "3",
+                    incorrect: ["2", "4", "12"],
+                    explanation: "IMA = effort distance/load distance = 6/2 = 3."
+                },
+                {
+                    question: "In a fixed pulley, how does the direction of force change?",
+                    answer: "It changes direction but not magnitude",
+                    incorrect: ["Both direction and magnitude change", "Only magnitude changes", "Neither changes"],
+                    explanation: "A fixed pulley changes the direction of the applied force but doesn't provide mechanical advantage."
+                },
+                {
+                    question: "What type of simple machine is a doorstop?",
+                    answer: "Wedge",
+                    incorrect: ["Inclined plane", "Screw", "Lever"],
+                    explanation: "A wedge is two inclined planes placed back-to-back, used to split or separate objects."
+                },
+                {
+                    question: "If you apply 10 N of force over 5 meters, how much work is done?",
+                    answer: "50 Joules",
+                    incorrect: ["15 Joules", "2 Joules", "5 Joules"],
+                    explanation: "Work = Force × Distance = 10 N × 5 m = 50 Joules."
+                },
+                {
+                    question: "What happens when two gears of the same size mesh together?",
+                    answer: "They rotate at the same speed in opposite directions",
+                    incorrect: ["They rotate at different speeds", "They rotate in the same direction", "One stops rotating"],
+                    explanation: "Equal-sized meshed gears rotate at the same speed but in opposite directions."
+                },
+                {
+                    question: "What is the mechanical advantage of a single fixed pulley?",
+                    answer: "1",
+                    incorrect: ["2", "0.5", "3"],
+                    explanation: "A single fixed pulley has MA of 1; it changes direction but not force required."
+                },
+                {
+                    question: "Which tool is an example of a third-class lever?",
+                    answer: "Tweezers",
+                    incorrect: ["Crowbar", "Wheelbarrow", "Seesaw"],
+                    explanation: "In third-class levers, effort is between fulcrum and load (like tweezers or fishing rods)."
+                },
+                {
+                    question: "If a wheel has a radius of 10 cm and the axle has a radius of 2 cm, what is the mechanical advantage?",
+                    answer: "5",
+                    incorrect: ["2", "20", "8"],
+                    explanation: "MA of wheel and axle = wheel radius/axle radius = 10/2 = 5."
+                },
+                {
+                    question: "What does friction do to mechanical efficiency?",
+                    answer: "Decreases it",
+                    incorrect: ["Increases it", "Has no effect", "Makes it perfect"],
+                    explanation: "Friction converts some mechanical energy to heat, reducing efficiency below 100%."
+                },
+                {
+                    question: "In a hydraulic system, what happens when you apply pressure to a small piston?",
+                    answer: "A larger piston moves with greater force",
+                    incorrect: ["A larger piston doesn't move", "Both pistons move equally", "The system breaks"],
+                    explanation: "Pascal's principle: pressure applied to fluid is transmitted equally, allowing force multiplication."
+                },
+                {
+                    question: "What type of simple machine is a knife?",
+                    answer: "Wedge",
+                    incorrect: ["Lever", "Inclined plane", "Screw"],
+                    explanation: "A knife is a wedge - two inclined planes that cut or separate materials."
+                },
+                {
+                    question: "If you use a 2-meter crowbar to lift a 200 N rock, and the fulcrum is 0.4 meters from the rock, how much force do you need to apply?",
+                    answer: "50 N",
+                    incorrect: ["100 N", "200 N", "25 N"],
+                    explanation: "Force × effort arm = Load × load arm. F × 1.6 = 200 × 0.4. F = 50 N."
+                },
+                {
+                    question: "What happens to speed when you increase mechanical advantage in a gear system?",
+                    answer: "Speed decreases",
+                    incorrect: ["Speed increases", "Speed stays the same", "System stops"],
+                    explanation: "Trade-off: increasing force (MA) decreases speed, and vice versa."
+                },
+                {
+                    question: "Which type of pulley provides the greatest mechanical advantage?",
+                    answer: "Movable pulley system",
+                    incorrect: ["Fixed pulley", "Single pulley", "No pulley"],
+                    explanation: "Movable/compound pulley systems can have MA > 1, while fixed pulleys have MA = 1."
+                },
+                {
+                    question: "What is the purpose of bearings in machinery?",
+                    answer: "Reduce friction",
+                    incorrect: ["Increase friction", "Generate heat", "Stop motion"],
+                    explanation: "Bearings reduce friction between moving parts, improving efficiency and reducing wear."
+                },
+                {
+                    question: "In a second-class lever, where is the load located?",
+                    answer: "Between the fulcrum and the effort",
+                    incorrect: ["At the fulcrum", "Beyond the effort", "At the effort point"],
+                    explanation: "Second-class levers have load between fulcrum and effort (like wheelbarrows)."
+                },
+                {
+                    question: "What is the relationship between the number of threads per inch and the mechanical advantage of a screw?",
+                    answer: "More threads = greater MA",
+                    incorrect: ["More threads = less MA", "No relationship", "Fewer threads = greater MA"],
+                    explanation: "More threads per inch means a gentler incline, providing greater mechanical advantage."
+                },
+                {
+                    question: "If a pulley system has a mechanical advantage of 4, how much force is needed to lift a 400 N object?",
+                    answer: "100 N",
+                    incorrect: ["400 N", "200 N", "50 N"],
+                    explanation: "Force needed = Load/MA = 400/4 = 100 N."
+                },
+                {
+                    question: "What happens to pressure in a fluid when it flows through a narrower pipe?",
+                    answer: "Pressure decreases, velocity increases",
+                    incorrect: ["Both increase", "Both decrease", "Pressure increases, velocity decreases"],
+                    explanation: "Bernoulli's principle: as velocity increases in a narrower section, pressure decreases."
+                },
+                {
+                    question: "Which requires more work: lifting a 50 N box 2 meters or lifting a 25 N box 4 meters?",
+                    answer: "They require the same work",
+                    incorrect: ["The 50 N box", "The 25 N box", "Impossible to determine"],
+                    explanation: "Work = Force × Distance. Both equal 100 J (50×2 = 25×4 = 100)."
+                },
+                {
+                    question: "What type of gear arrangement reverses the direction of rotation?",
+                    answer: "Two meshed gears",
+                    incorrect: ["Three meshed gears", "Gears on same shaft", "Planetary gears"],
+                    explanation: "Two meshed gears rotate in opposite directions; odd numbers of gears reverse direction."
+                },
+                {
+                    question: "In a block and tackle pulley system with 3 supporting ropes, what is the mechanical advantage?",
+                    answer: "3",
+                    incorrect: ["1", "6", "2"],
+                    explanation: "In a block and tackle, MA equals the number of rope segments supporting the load."
+                },
+                {
+                    question: "What is torque?",
+                    answer: "Rotational force",
+                    incorrect: ["Linear force", "Weight", "Pressure"],
+                    explanation: "Torque is the rotational equivalent of force, measuring the tendency to cause rotation."
+                },
+                {
+                    question: "If a driver gear has 10 teeth and rotates at 100 RPM, and the driven gear has 50 teeth, at what speed does the driven gear rotate?",
+                    answer: "20 RPM",
+                    incorrect: ["100 RPM", "500 RPM", "50 RPM"],
+                    explanation: "Speed ratio is inverse of gear ratio. 10/50 × 100 = 20 RPM."
+                },
+                {
+                    question: "What is the function of a cam in mechanical systems?",
+                    answer: "Convert rotary motion to linear motion",
+                    incorrect: ["Reduce friction", "Increase speed", "Generate electricity"],
+                    explanation: "Cams convert rotational motion into reciprocating (back-and-forth) linear motion."
+                },
+                {
+                    question: "Which simple machine is a ramp?",
+                    answer: "Inclined plane",
+                    incorrect: ["Wedge", "Lever", "Wheel and axle"],
+                    explanation: "An inclined plane is a flat surface tilted at an angle, like a ramp."
+                },
+                {
+                    question: "What happens to the force output when you increase the number of pulleys in a system?",
+                    answer: "Force output increases",
+                    incorrect: ["Force output decreases", "Force stays the same", "System fails"],
+                    explanation: "More pulleys distribute the load over more rope segments, multiplying the force."
+                },
+                {
+                    question: "In a gear train, if the first gear turns clockwise, which direction does the third gear turn?",
+                    answer: "Clockwise",
+                    incorrect: ["Counterclockwise", "It doesn't turn", "Alternates"],
+                    explanation: "Each gear reverses direction. With three gears: CW → CCW → CW."
+                },
+                {
+                    question: "What is the efficiency of a machine that requires 100 J of input energy to produce 75 J of output energy?",
+                    answer: "75%",
+                    incorrect: ["100%", "50%", "25%"],
+                    explanation: "Efficiency = (Output/Input) × 100% = (75/100) × 100% = 75%."
+                },
+                {
+                    question: "Which statement about levers is true?",
+                    answer: "Increasing effort arm length increases mechanical advantage",
+                    incorrect: ["Decreasing effort arm increases MA", "Lever length doesn't affect MA", "Fulcrum position doesn't matter"],
+                    explanation: "MA = effort arm/load arm. Longer effort arm = greater mechanical advantage."
+                },
+                {
+                    question: "What is the primary advantage of using compound machines?",
+                    answer: "They combine advantages of multiple simple machines",
+                    incorrect: ["They are simpler to build", "They require no energy", "They never break"],
+                    explanation: "Compound machines combine simple machines to achieve complex tasks more efficiently."
+                },
+                {
+                    question: "If you apply a force of 50 N to move an object 10 meters in 5 seconds, what is the power?",
+                    answer: "100 Watts",
+                    incorrect: ["50 Watts", "250 Watts", "500 Watts"],
+                    explanation: "Power = Work/Time. Work = 50×10 = 500 J. Power = 500/5 = 100 W."
+                },
+                {
+                    question: "What is the mechanical advantage of an inclined plane that is 10 meters long and 2 meters high?",
+                    answer: "5",
+                    incorrect: ["2", "20", "8"],
+                    explanation: "MA = length/height = 10/2 = 5."
+                },
+                {
+                    question: "In a wheel and axle, if you apply force to the wheel, what happens at the axle?",
+                    answer: "Greater force, less distance",
+                    incorrect: ["Less force, greater distance", "Same force, same distance", "No force"],
+                    explanation: "Applying force to the larger wheel produces greater force at the smaller axle over less distance."
+                },
+                {
+                    question: "What is the purpose of a clutch in a vehicle?",
+                    answer: "Engage and disengage power transmission",
+                    incorrect: ["Increase speed", "Reduce fuel consumption", "Steer the vehicle"],
+                    explanation: "A clutch allows the driver to smoothly connect and disconnect engine power from the transmission."
+                },
+                {
+                    question: "Which law states that every action has an equal and opposite reaction?",
+                    answer: "Newton's Third Law",
+                    incorrect: ["Newton's First Law", "Newton's Second Law", "Law of Conservation"],
+                    explanation: "Newton's Third Law: when one object exerts a force on another, the second exerts an equal and opposite force."
+                },
+                {
+                    question: "What type of energy is stored in a compressed spring?",
+                    answer: "Elastic potential energy",
+                    incorrect: ["Kinetic energy", "Thermal energy", "Chemical energy"],
+                    explanation: "Compressed or stretched springs store elastic potential energy that can be released."
+                },
+                {
+                    question: "If a machine has an efficiency of 80% and requires 500 J of input energy, how much useful work does it produce?",
+                    answer: "400 J",
+                    incorrect: ["500 J", "625 J", "300 J"],
+                    explanation: "Output = Efficiency × Input = 0.80 × 500 = 400 J."
+                },
+                {
+                    question: "What happens to mechanical advantage when you reduce the length of the effort arm in a lever?",
+                    answer: "It decreases",
+                    incorrect: ["It increases", "It stays the same", "It doubles"],
+                    explanation: "MA = effort arm/load arm. Shorter effort arm = lower mechanical advantage."
+                },
+                {
+                    question: "What is the relationship between force and area in calculating pressure?",
+                    answer: "Pressure = Force/Area",
+                    incorrect: ["Pressure = Force × Area", "Pressure = Area/Force", "Pressure = Force + Area"],
+                    explanation: "Pressure is force distributed over an area: P = F/A. Smaller area = higher pressure."
+                },
+                {
+                    question: "Which simple machine consists of two inclined planes placed back-to-back?",
+                    answer: "Wedge",
+                    incorrect: ["Screw", "Lever", "Pulley"],
+                    explanation: "A wedge is made of two inclined planes and is used for splitting or separating."
+                },
+                {
+                    question: "What is the advantage of using a longer ramp to load a truck?",
+                    answer: "Less force required",
+                    incorrect: ["More force required", "Faster loading", "No advantage"],
+                    explanation: "Longer ramps have greater MA, requiring less force but over a greater distance."
+                },
+                {
+                    question: "In a pulley system, what is the trade-off for gaining mechanical advantage?",
+                    answer: "You must pull the rope a longer distance",
+                    incorrect: ["You must pull faster", "You must use more force", "There is no trade-off"],
+                    explanation: "With higher MA, you use less force but must pull rope through a greater distance."
+                },
+                {
+                    question: "What determines the speed of a belt-driven system?",
+                    answer: "The ratio of pulley diameters",
+                    incorrect: ["The belt material", "The belt color", "The room temperature"],
+                    explanation: "Speed ratio in belt drives depends on the relative sizes of the driving and driven pulleys."
+                },
+                {
+                    question: "What is the function of a flywheel in an engine?",
+                    answer: "Store rotational energy and smooth out power delivery",
+                    incorrect: ["Generate electricity", "Cool the engine", "Filter air"],
+                    explanation: "Flywheels store kinetic energy and maintain smooth, continuous rotation during power strokes."
+                },
+                {
+                    question: "If two gears have a gear ratio of 4:1, and the input gear rotates at 80 RPM, what is the output speed?",
+                    answer: "20 RPM",
+                    incorrect: ["320 RPM", "80 RPM", "40 RPM"],
+                    explanation: "With 4:1 ratio, output speed = input speed/4 = 80/4 = 20 RPM."
+                },
+                {
+                    question: "What is the primary purpose of lubrication in mechanical systems?",
+                    answer: "Reduce friction and wear",
+                    incorrect: ["Increase friction", "Add weight", "Change color"],
+                    explanation: "Lubrication creates a film between surfaces, reducing friction, heat, and wear."
+                },
+                {
+                    question: "Which type of lever provides the least mechanical advantage but the greatest range of motion?",
+                    answer: "Third-class lever",
+                    incorrect: ["First-class lever", "Second-class lever", "All levers are equal"],
+                    explanation: "Third-class levers (MA < 1) sacrifice force for increased speed and range of motion."
+                }
+            ]
+        };
+
+        // App State
+        let currentDeck = 'english';
+        let currentMode = 'flashcards';
+        let currentCardIndex = 0;
+        let currentTestIndex = 0;
+        let testScore = 0;
+        let cards = [];
+        let testQuestions = [];
+        let isFlipped = false;
+
+        // DOM Elements
+        const deckSelect = document.getElementById('deckSelect');
+        const tabs = document.querySelectorAll('.tab');
+        const flashcard = document.getElementById('flashcard');
+        const cardQuestion = document.getElementById('cardQuestion');
+        const cardAnswer = document.getElementById('cardAnswer');
+        const cardExplanation = document.getElementById('cardExplanation');
+        const flashcardProgress = document.getElementById('flashcardProgress');
+        const prevCardBtn = document.getElementById('prevCard');
+        const nextCardBtn = document.getElementById('nextCard');
+        const shuffleBtn = document.getElementById('shuffleCards');
+        const testContainer = document.getElementById('testContainer');
+        const testQuestion = document.getElementById('testQuestion');
+        const testOptions = document.getElementById('testOptions');
+        const testProgress = document.getElementById('testProgress');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const finalScore = document.getElementById('finalScore');
+        const scoreMessage = document.getElementById('scoreMessage');
+        const retakeBtn = document.getElementById('retakeTest');
+
+        // Initialize
+        function init() {
+            loadDeck();
+            updateFlashcard();
+            
+            // Event Listeners
+            deckSelect.addEventListener('change', handleDeckChange);
+            tabs.forEach(tab => tab.addEventListener('click', handleTabChange));
+            flashcard.addEventListener('click', flipCard);
+            prevCardBtn.addEventListener('click', prevCard);
+            nextCardBtn.addEventListener('click', nextCard);
+            shuffleBtn.addEventListener('click', shuffleCards);
+            retakeBtn.addEventListener('click', resetTest);
+        }
+
+        function loadDeck() {
+            cards = [...questionBank[currentDeck]];
+            if (currentMode === 'practice') {
+                initTest();
+            }
+        }
+
+        function handleDeckChange(e) {
+            currentDeck = e.target.value;
+            currentCardIndex = 0;
+            currentTestIndex = 0;
+            loadDeck();
+            if (currentMode === 'flashcards') {
+                isFlipped = false;
+                flashcard.classList.remove('flipped');
+                updateFlashcard();
+            } else {
+                resetTest();
+            }
+        }
+
+        function handleTabChange(e) {
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            const modes = document.querySelectorAll('.mode');
+            modes.forEach(m => m.classList.remove('active'));
+            
+            currentMode = e.target.dataset.mode;
+            document.getElementById(currentMode).classList.add('active');
+            
+            if (currentMode === 'practice') {
+                resetTest();
+            } else {
+                currentCardIndex = 0;
+                isFlipped = false;
+                flashcard.classList.remove('flipped');
+                updateFlashcard();
+            }
+        }
+
+        // Flashcard Functions
+        function updateFlashcard() {
+            const card = cards[currentCardIndex];
+            cardQuestion.textContent = card.question;
+            cardAnswer.textContent = card.answer;
+            cardExplanation.textContent = card.explanation;
+            flashcardProgress.textContent = `Card ${currentCardIndex + 1} / ${cards.length}`;
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            flashcard.classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            if (currentCardIndex < cards.length - 1) {
+                currentCardIndex++;
+                isFlipped = false;
+                flashcard.classList.remove('flipped');
+                updateFlashcard();
+            }
+        }
+
+        function prevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                isFlipped = false;
+                flashcard.classList.remove('flipped');
+                updateFlashcard();
+            }
+        }
+
+        function shuffleCards() {
+            cards = shuffleArray([...questionBank[currentDeck]]);
+            currentCardIndex = 0;
+            isFlipped = false;
+            flashcard.classList.remove('flipped');
+            updateFlashcard();
+        }
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Practice Test Functions
+        function initTest() {
+            testQuestions = shuffleArray([...questionBank[currentDeck]]);
+            currentTestIndex = 0;
+            testScore = 0;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentTestIndex >= testQuestions.length) {
+                showResults();
+                return;
+            }
+
+            const question = testQuestions[currentTestIndex];
+            testQuestion.textContent = question.question;
+            
+            const allOptions = [question.answer, ...question.incorrect];
+            const shuffledOptions = shuffleArray(allOptions);
+            
+            testOptions.innerHTML = '';
+            shuffledOptions.forEach(option => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.addEventListener('click', () => selectOption(option, question.answer));
+                testOptions.appendChild(optionDiv);
+            });
+            
+            testProgress.textContent = `Question ${currentTestIndex + 1} / ${testQuestions.length}`;
+        }
+
+        function selectOption(selected, correct) {
+            const options = testOptions.querySelectorAll('.option');
+            options.forEach(opt => {
+                opt.classList.add('disabled');
+                if (opt.textContent === correct) {
+                    opt.classList.add('correct');
+                }
+                if (opt.textContent === selected && selected !== correct) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            if (selected === correct) {
+                testScore++;
+            }
+            
+            setTimeout(() => {
+                currentTestIndex++;
+                showQuestion();
+            }, 1500);
+        }
+
+        function showResults() {
+            testContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            const percentage = Math.round((testScore / testQuestions.length) * 100);
+            finalScore.textContent = `${testScore} / ${testQuestions.length}`;
+            
+            if (percentage >= 90) {
+                scoreMessage.textContent = `${percentage}% - Outstanding! You're ready for the ASVAB!`;
+            } else if (percentage >= 80) {
+                scoreMessage.textContent = `${percentage}% - Great job! Keep practicing to perfect your skills.`;
+            } else if (percentage >= 70) {
+                scoreMessage.textContent = `${percentage}% - Good work! Review the material and try again.`;
+            } else {
+                scoreMessage.textContent = `${percentage}% - Keep studying! Practice makes perfect.`;
+            }
+        }
+
+        function resetTest() {
+            testContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            initTest();
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
