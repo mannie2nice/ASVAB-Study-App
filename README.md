@@ -31,3 +31,6 @@ Emmanuel Adisa
 Computer Science & Information Technology Student 
 
 This project reflects my growing foundation in web development, programming, and IT systems, as well as my ability to use AI responsibly as a productivity tool while building practical, real-world applications.
+
+To Access 
+file:///C:/Users/nuela/Downloads/asvab_study_app.html
